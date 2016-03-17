@@ -1,6 +1,21 @@
 <html>
     
 <body background="e.jpg">
+  <div id="main" style="padding:20px;">      
+    <img src="logo.png"  style="margin:120px 10px 0px 450px;width:304px;height:228px;">
+</div>
+    <script>
+    function ValidateEmail(mail)   
+    {  
+     if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail))  
+      {  
+        return (true)  
+      }  
+        alert("You have entered an invalid email address!")  
+        return (false)  
+    }  
+    </script>
+    
 <?php
 include_once "LoginRadiusSDK/LoginRadius.php";
 include_once "LoginRadiusSDK/LoginRadiusException.php";
@@ -22,40 +37,48 @@ use LoginRadiusSDK\CustomerRegistration\UserAPI;
 use LoginRadiusSDK\CustomerRegistration\AccountAPI;
 use LoginRadiusSDK\CustomerRegistration\CustomObjectAPI;
 
+    $json = file_get_contents("https://api.loginradius.com/api/v2/access_token?token=" . $_REQUEST['token'] . "&secret=" . LR_API_SECRET); // this WILL do an http request for you
+    $data = json_decode($json);
+    $access_token = $data->{'access_token'};
 
-$json = file_get_contents("https://api.loginradius.com/api/v2/access_token?token=".$_REQUEST['token']. "&secret=".LR_API_SECRET); // this WILL do an http request for you
-$data = json_decode($json);
-$access_token = $data->{'access_token'};
+    $json = file_get_contents("https://api.loginradius.com/api/v2/userprofile?access_token=" . $access_token); // this WILL do an http request for you
+    $data = json_decode($json);
+    $name = $data->{'ProfileName'};
+    $array = $data->{'Email'};
+    $email = "";
+    if (array_key_exists("0", $data))
+        $email = $array[0]->{'Value'};
 
-$json = file_get_contents("https://api.loginradius.com/api/v2/userprofile?access_token=". $access_token); // this WILL do an http request for you
-$data = json_decode($json);
-$array = $data->{'Email'};
-$name = $data->{'ProfileName'};
-$email = $array[0]->{'Value'};
 //$email = 'pritikachhap@gmail.com';
+    ?>
 
+    <div style="margin:100px;color:white; padding:20px;">    
+        <form id="form" action="status.php"  method="post" >
+            <input type="hidden" id="hiddenName" name='name' value="<?php echo $name; ?>" /><br>
+            <input type="hidden" id="hiddenEmail" name='email' value=" <?php echo $email; ?>" />
+        </form> 
+    </div>
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { 
-?>
- <div style="margin:100px;color:white; padding:20px;">    
- <form action="status.php"  method="post"  >
-  Enter valid Email Address:<br>
-  <input type="text" name="email" value="some@gmail.com"><br>
-  <input type='hidden' id= 'hiddenField' name='name' value='' />
-  <input type="submit" value="ok" onclick='addParam()' >
-</form> 
-</div> 
- <script> 
-  function addParam() {
-     document.getElementById('hiddenField').value = "<?php echo $name; ?>";
-     //document.getElementById("myForm").submit();
-   }
-</script>
-<?php
-}
-?>
-<div id="main" style="padding:20px;">      
-    <img src="logo.png"  style="margin:100px 10px 0px 450px;width:304px;height:228px;">
-</div>
- </body>
+    <?php
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        ?>
+
+        <script>    
+         while(true)
+               {
+                var email = prompt("Enter valid Email Address");
+                if(ValidateEmail(email))
+                {
+                    document.getElementById("hiddenEmail").value = email;
+                    break;
+            }
+            }  
+    </script>
+        <?php
+    }
+    ?>
+    <script> 
+   document.getElementById("form").submit();
+    </script>
+</body>
 </html>
